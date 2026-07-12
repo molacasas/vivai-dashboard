@@ -53,10 +53,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .sel-dot{width:8px;height:8px;background:#C9A96E;border-radius:50%;flex-shrink:0}
 .sel-fmt{margin-left:auto;font-size:11px;color:#888}
 .empty{font-size:13px;color:#999;text-align:center;padding:30px 0}
-.btn-1{padding:14px;border-radius:8px;border:none;background:#0a0a0a;color:#fff;font-size:14px;font-weight:500;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:opacity .15s}
+.btn-1{padding:14px;border-radius:8px;border:none;background:#0a0a0a;color:#fff;font-size:14px;font-weight:500;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:opacity .15s,background .15s}
 .btn-1:hover{opacity:0.85}
 .btn-1:disabled{background:#e5e5e0;color:#888;cursor:not-allowed}
+.btn-1.sending{background:#555;cursor:wait}
+.btn-1.ok{background:#0ca30c}
+.btn-1.err{background:#d03b3b}
 .btn-2{padding:11px;border-radius:8px;border:1px solid #bbb;background:transparent;font-size:13px;cursor:pointer;width:100%;margin-top:8px;color:#0a0a0a;font-family:inherit}
+.btn-3{padding:9px;border-radius:8px;border:1px solid #e5e5e0;background:transparent;font-size:11px;cursor:pointer;width:100%;margin-top:6px;color:#888;font-family:inherit}
+.btn-3:hover{color:#0a0a0a;border-color:#bbb}
 .rt{font-size:14px;font-weight:500;margin-bottom:12px;color:#555}
 .brief{font-size:12px;color:#555;line-height:1.7;max-height:280px;overflow-y:auto}
 .brief b{color:#0a0a0a;font-weight:500}
@@ -123,8 +128,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="panel">
 <div class="rt">Selección de la semana</div>
 <div class="sel-list" id="sellist"><div class="empty">Toca productos del ranking</div></div>
-<button class="btn-1" id="gobtn" onclick="produce()" disabled>Generar código para n8n</button>
+<button class="btn-1" id="gobtn" onclick="enviar()" disabled>Enviar a n8n</button>
 <button class="btn-2" onclick="auto()">Auto-seleccionar top 7</button>
+<button class="btn-3" onclick="produce()">Ver código manual (modo respaldo)</button>
 </div>
 <div class="panel">
 <div class="rt">Vista previa del brief</div>
@@ -142,16 +148,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="modal" id="modal">
 <div class="modal-c">
 <div class="modal-h">
-<div class="modal-t">Código listo para n8n</div>
+<div class="modal-t">Código de respaldo para n8n</div>
 <button class="modal-x" onclick="closeM()">×</button>
 </div>
-<div class="modal-i"><b>Instrucciones (30 seg):</b><br>1. Copia el código de abajo<br>2. Abre n8n → workflow VÍVAI → nodo <b>productos</b><br>3. Selecciona todo el código existente (Ctrl+A) y bórralo<br>4. Pega el nuevo código<br>5. Guarda con Ctrl+S. Listo.</div>
+<div class="modal-i"><b>Usa esto solo si el botón "Enviar a n8n" falla:</b><br>1. Copia el código de abajo<br>2. Abre n8n → workflow VÍVAI → nodo <b>productos</b><br>3. Selecciona todo el código existente (Ctrl+A) y bórralo<br>4. Pega el nuevo código<br>5. Guarda con Ctrl+S. Listo.</div>
 <div class="code-box" id="code"></div>
 <button class="btn-copy" id="btncopy" onclick="copy()">Copiar código</button>
 </div>
 </div>
 
 <script>
+const WEBHOOK_URL = "https://calcium-referring-douglas-politicians.trycloudflare.com/webhook/vivai-seleccion";
+
 const PROD=[
 {i:1,n:"Limpiador facial sónico",c:"gadget",f:"F3",v:94,co:18,d:82,t:91,k:"limpiador facial sonico"},
 {i:2,n:"Mascarilla LED facial portátil",c:"gadget",f:"F4",v:88,co:22,d:71,t:95,k:"mascarilla led facial"},
@@ -224,8 +232,10 @@ document.getElementById('k4').textContent=A.length?Math.round(A.reduce((s,p)=>s+
 const L=document.getElementById('sellist');
 if(A.length===0){L.innerHTML='<div class="empty">Toca productos del ranking</div>'}
 else{L.innerHTML=A.map(p=>`<div class="sel-item"><div class="sel-dot"></div><span>${p.n}</span><span class="sel-fmt">${p.f} · x2</span></div>`).join('')}
-document.getElementById('gobtn').disabled=sel.size!==7;
-document.getElementById('gobtn').innerHTML=sel.size===7?'Generar código para n8n ↗':`Selecciona ${7-sel.size} más`;
+const btn=document.getElementById('gobtn');
+btn.disabled=sel.size!==7;
+btn.classList.remove('sending','ok','err');
+btn.innerHTML=sel.size===7?'Enviar a n8n ↗':`Selecciona ${7-sel.size} más`;
 }
 
 function showB(i){
@@ -236,8 +246,36 @@ document.getElementById('brief').innerHTML=`<b>${p.n}</b><br><span style="color:
 
 function auto(){sel.clear();R.slice(0,7).forEach(p=>sel.add(p.i));localStorage.setItem('vivai_sel',JSON.stringify([...sel]));rend()}
 
-function produce(){
+async function enviar(){
 if(sel.size!==7)return;
+const A=R.filter(p=>sel.has(p.i));
+const payload=A.map(p=>({producto:p.n,formato:FMT_FULL[p.f],keyword:p.k}));
+const btn=document.getElementById('gobtn');
+btn.classList.add('sending');
+btn.innerHTML='Enviando a n8n...';
+btn.disabled=true;
+try{
+const r=await fetch(WEBHOOK_URL,{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(payload)
+});
+if(!r.ok)throw new Error('HTTP '+r.status);
+btn.classList.remove('sending');
+btn.classList.add('ok');
+btn.innerHTML='✓ Enviado a n8n · 7 productos guardados';
+setTimeout(()=>{btn.classList.remove('ok');btn.disabled=false;btn.innerHTML='Enviar de nuevo ↗'},4000);
+}catch(e){
+btn.classList.remove('sending');
+btn.classList.add('err');
+btn.innerHTML='✗ Error · usa el modo respaldo abajo';
+btn.disabled=false;
+console.error('Webhook error:',e);
+}
+}
+
+function produce(){
+if(sel.size!==7){alert('Selecciona 7 productos primero');return}
 const A=R.filter(p=>sel.has(p.i));
 const code=`const semana = [
 ${A.map(p=>`  { producto: "${p.n}", formato: "${FMT_FULL[p.f]}", keyword: "${p.k}" }`).join(',\n')}
