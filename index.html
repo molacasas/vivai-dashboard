@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VÍVAI Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fafaf9;color:#0a0a0a;padding:20px;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto}
+.header{padding:20px 0 24px;border-bottom:1px solid #e5e5e0;margin-bottom:28px}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:12px}
+.brand{font-size:28px;font-weight:500;letter-spacing:0.05em}
+.brand-g{color:#C9A96E}
+.brand-sub{font-size:11px;color:#888;font-style:italic;letter-spacing:0.15em;margin-top:2px}
+.week{font-size:12px;color:#555;padding:8px 14px;background:#fff;border-radius:8px;border:1px solid #e5e5e0}
+.sub{font-size:14px;color:#555}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:32px}
+.kpi{background:#fff;padding:14px 18px;border-radius:10px;border:1px solid #e5e5e0}
+.kpi-l{font-size:11px;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em}
+.kpi-v{font-size:26px;font-weight:500}
+.kpi-v.g{color:#C9A96E}
+.kpi-v.p{color:#0ca30c}
+.st-title{font-size:14px;font-weight:500;color:#555;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.fbtn{font-size:12px;padding:7px 14px;border-radius:20px;border:1px solid #e5e5e0;background:#fff;cursor:pointer;color:#555;font-family:inherit}
+.fbtn.on{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
+.grid{display:grid;gap:8px;margin-bottom:28px}
+.card{background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:36px 1fr auto auto;gap:14px;align-items:center;cursor:pointer;transition:border .15s;font-family:inherit}
+.card:hover{border-color:#bbb}
+.card.sel{border-color:#C9A96E;border-width:2px;background:#fffdf7;padding:13px 15px}
+.rank{width:30px;height:30px;border-radius:50%;background:#f5f5f0;color:#666;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;border:1px solid #e5e5e0}
+.rank.top{background:#C9A96E;color:#000;border-color:#C9A96E}
+.pi{min-width:0}
+.pn{font-size:15px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm{display:flex;gap:6px;flex-wrap:wrap}
+.tg{font-size:10px;padding:3px 9px;border-radius:20px;background:#f5f5f0;color:#666;border:1px solid #e5e5e0}
+.tg-fmt{background:#eef4ff;color:#1a56b8;border:none}
+.mt{display:grid;grid-template-columns:repeat(4,52px);gap:6px;text-align:center}
+.m{padding:3px 0}
+.mv{font-size:13px;font-weight:500}
+.mv.g{color:#0ca30c}
+.mv.a{color:#C9A96E}
+.mv.r{color:#d03b3b}
+.ml{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.03em}
+.chk{width:22px;height:22px;border:2px solid #bbb;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#000;font-size:14px}
+.card.sel .chk{background:#C9A96E;border-color:#C9A96E}
+.card:not(.sel) .chk-i{display:none}
+.bot{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.panel{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e5e0}
+.sel-list{display:flex;flex-direction:column;gap:6px;min-height:100px;max-height:220px;overflow-y:auto;margin-bottom:16px}
+.sel-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#faf9f4;border-radius:8px;font-size:13px}
+.sel-dot{width:8px;height:8px;background:#C9A96E;border-radius:50%;flex-shrink:0}
+.sel-fmt{margin-left:auto;font-size:11px;color:#888}
+.empty{font-size:13px;color:#999;text-align:center;padding:30px 0}
+.btn-1{padding:14px;border-radius:8px;border:none;background:#0a0a0a;color:#fff;font-size:14px;font-weight:500;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:opacity .15s}
+.btn-1:hover{opacity:0.85}
+.btn-1:disabled{background:#e5e5e0;color:#888;cursor:not-allowed}
+.btn-2{padding:11px;border-radius:8px;border:1px solid #bbb;background:transparent;font-size:13px;cursor:pointer;width:100%;margin-top:8px;color:#0a0a0a;font-family:inherit}
+.rt{font-size:14px;font-weight:500;margin-bottom:12px;color:#555}
+.brief{font-size:12px;color:#555;line-height:1.7;max-height:280px;overflow-y:auto}
+.brief b{color:#0a0a0a;font-weight:500}
+.stat-row{margin-top:20px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#faf9f4;border-radius:8px;font-size:12px;border:1px solid #e5e5e0;flex-wrap:wrap;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:#0ca30c;display:inline-block;margin-right:8px}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+.modal.show{display:flex}
+.modal-c{background:#fff;border-radius:12px;padding:24px;max-width:640px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-t{font-size:18px;font-weight:500}
+.modal-x{background:none;border:none;font-size:24px;cursor:pointer;color:#888}
+.modal-i{font-size:13px;color:#555;margin-bottom:12px;line-height:1.6}
+.modal-i b{color:#0a0a0a}
+.code-box{background:#0a0a0a;color:#e0e0e0;padding:16px;border-radius:8px;font-family:'SF Mono',Monaco,monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;max-height:360px;overflow:auto;margin-bottom:12px}
+.btn-copy{padding:12px;border-radius:8px;border:none;background:#0ca30c;color:#fff;font-size:14px;font-weight:500;cursor:pointer;width:100%;font-family:inherit}
+.btn-copy.copied{background:#0a0a0a}
+@media(max-width:768px){
+.header-row{align-items:flex-start}
+.brand{font-size:22px}
+.kpi-v{font-size:22px}
+.card{grid-template-columns:32px 1fr auto;gap:10px;padding:12px}
+.mt{display:none}
+.pn{font-size:14px}
+.chk{width:20px;height:20px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+<div class="header-row">
+<div>
+<div class="brand">VÍ<span class="brand-g">VAI</span></div>
+<div class="brand-sub">PARA TI</div>
+</div>
+<div class="week" id="week">Semana 13-19 julio 2026</div>
+</div>
+<div class="sub">Selecciona 7 productos · 2 vídeos por producto · 14 vídeos automáticos el lunes 09:00</div>
+</div>
+
+<div class="kpi-row">
+<div class="kpi"><div class="kpi-l">Seleccionados</div><div class="kpi-v g" id="k1">0/7</div></div>
+<div class="kpi"><div class="kpi-l">Vídeos semana</div><div class="kpi-v" id="k2">0</div></div>
+<div class="kpi"><div class="kpi-l">Coste estimado</div><div class="kpi-v" id="k3">$0.00</div></div>
+<div class="kpi"><div class="kpi-l">Comisión media</div><div class="kpi-v p" id="k4">—</div></div>
+</div>
+
+<div class="st-title">
+<span>Ranking productos <span style="color:#888;font-weight:400">· Score = ventas · comisión · demanda · trend</span></span>
+</div>
+
+<div class="filters">
+<button class="fbtn on" onclick="flt('todos',this)">Todos</button>
+<button class="fbtn" onclick="flt('gadget',this)">Gadgets</button>
+<button class="fbtn" onclick="flt('skincare',this)">Skincare</button>
+<button class="fbtn" onclick="flt('makeup',this)">Makeup</button>
+<button class="fbtn" onclick="flt('high',this)">Comisión &gt;15%</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="bot">
+<div class="panel">
+<div class="rt">Selección de la semana</div>
+<div class="sel-list" id="sellist"><div class="empty">Toca productos del ranking</div></div>
+<button class="btn-1" id="gobtn" onclick="produce()" disabled>Generar código para n8n</button>
+<button class="btn-2" onclick="auto()">Auto-seleccionar top 7</button>
+</div>
+<div class="panel">
+<div class="rt">Vista previa del brief</div>
+<div class="brief" id="brief"><span style="color:#999">Toca un producto para ver el brief que Claude enviará a HeyGen.</span></div>
+</div>
+</div>
+
+<div class="stat-row">
+<span><span class="dot"></span>Motor: HeyGen · n8n activo · Telegram entrega</span>
+<span style="color:#888">Fase 0 · Consejera · Faceless 15s · Sin CTA venta</span>
+</div>
+
+</div>
+
+<div class="modal" id="modal">
+<div class="modal-c">
+<div class="modal-h">
+<div class="modal-t">Código listo para n8n</div>
+<button class="modal-x" onclick="closeM()">×</button>
+</div>
+<div class="modal-i"><b>Instrucciones (30 seg):</b><br>1. Copia el código de abajo<br>2. Abre n8n → workflow VÍVAI → nodo <b>productos</b><br>3. Selecciona todo el código existente (Ctrl+A) y bórralo<br>4. Pega el nuevo código<br>5. Guarda con Ctrl+S. Listo.</div>
+<div class="code-box" id="code"></div>
+<button class="btn-copy" id="btncopy" onclick="copy()">Copiar código</button>
+</div>
+</div>
+
+<script>
+const PROD=[
+{i:1,n:"Limpiador facial sónico",c:"gadget",f:"F3",v:94,co:18,d:82,t:91,k:"limpiador facial sonico"},
+{i:2,n:"Mascarilla LED facial portátil",c:"gadget",f:"F4",v:88,co:22,d:71,t:95,k:"mascarilla led facial"},
+{i:3,n:"Rodillo de jade gua sha",c:"skincare",f:"F1",v:76,co:14,d:88,t:78,k:"rodillo jade gua sha"},
+{i:4,n:"Sérum vitamina C iluminador",c:"skincare",f:"F1",v:85,co:16,d:65,t:88,k:"serum vitamina c"},
+{i:5,n:"Parches antiojeras hidrogel",c:"skincare",f:"F2",v:72,co:19,d:59,t:83,k:"parches antiojeras"},
+{i:6,n:"Cepillo limpieza facial",c:"gadget",f:"F3",v:68,co:21,d:74,t:79,k:"cepillo limpieza facial"},
+{i:7,n:"Protector solar SPF50 con color",c:"skincare",f:"F3",v:81,co:13,d:72,t:86,k:"protector solar color"},
+{i:8,n:"Contorno de ojos reafirmante",c:"skincare",f:"F2",v:64,co:17,d:61,t:74,k:"contorno ojos"},
+{i:9,n:"Base de maquillaje 24h",c:"makeup",f:"F4",v:77,co:12,d:83,t:81,k:"base maquillaje 24h"},
+{i:10,n:"Rizador automático cerámico",c:"gadget",f:"F5",v:59,co:24,d:68,t:72,k:"rizador automatico"},
+{i:11,n:"Mascarilla capilar queratina",c:"skincare",f:"F3",v:66,co:15,d:55,t:69,k:"mascarilla capilar"},
+{i:12,n:"Labial líquido mate 24h",c:"makeup",f:"F5",v:71,co:11,d:79,t:77,k:"labial mate 24h"},
+{i:13,n:"Suero retinol noche",c:"skincare",f:"F1",v:83,co:20,d:66,t:90,k:"suero retinol noche"},
+{i:14,n:"Parche antiimperfecciones",c:"skincare",f:"F2",v:61,co:16,d:52,t:71,k:"parche antiimperfecciones"}
+];
+
+const FMT_NAME={F1:"El Dato",F2:"Antes/Después",F3:"Por Qué No Te Funciona",F4:"La Prueba",F5:"A vs B"};
+const FMT_FULL={
+F1:"F1 El Dato Que No Sabías",
+F2:"F2 Antes / Después",
+F3:"F3 Por Qué No Te Funciona",
+F4:"F4 La Prueba",
+F5:"F5 Comparativa A vs B"
+};
+
+const sc=p=>Math.round(p.v*.3+p.co*1.5+p.d*.15+p.t*.25);
+const R=[...PROD].sort((a,b)=>sc(b)-sc(a)).map((p,i)=>({...p,r:i+1,s:sc(p)}));
+
+let sel=new Set(JSON.parse(localStorage.getItem('vivai_sel')||'[]'));
+let fil='todos';
+
+const mc=(v,t)=>t==='co'?(v>=18?'g':v>=14?'a':'r'):t==='d'?(v>=80?'g':v>=65?'a':'r'):t==='t'?(v>=85?'g':v>=70?'a':'r'):(v>=80?'g':v>=65?'a':'r');
+
+function flt(f,b){fil=f;document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');rend()}
+
+function rend(){
+const L=R.filter(p=>fil==='todos'?1:fil==='high'?p.co>15:p.c===fil);
+document.getElementById('grid').innerHTML=L.map(p=>{
+const s=sel.has(p.i);
+return `<div class="card${s?' sel':''}" onclick="tog(${p.i})">
+<div class="rank${p.r<=3?' top':''}">${p.r}</div>
+<div class="pi"><div class="pn">${p.n}</div>
+<div class="pm"><span class="tg tg-fmt">${p.f} ${FMT_NAME[p.f]}</span><span class="tg">${p.c}</span><span class="tg">Score ${p.s}</span></div></div>
+<div class="mt">
+<div class="m"><div class="mv ${mc(p.v,'v')}">${p.v}</div><div class="ml">ventas</div></div>
+<div class="m"><div class="mv ${mc(p.co,'co')}">${p.co}%</div><div class="ml">comisión</div></div>
+<div class="m"><div class="mv ${mc(p.d,'d')}">${p.d}</div><div class="ml">demanda</div></div>
+<div class="m"><div class="mv ${mc(p.t,'t')}">${p.t}</div><div class="ml">trend</div></div>
+</div>
+<div class="chk"><span class="chk-i">✓</span></div>
+</div>`}).join('');
+upd()
+}
+
+function tog(i){
+if(sel.has(i))sel.delete(i);
+else if(sel.size<7)sel.add(i);
+localStorage.setItem('vivai_sel',JSON.stringify([...sel]));
+rend();
+showB(i);
+}
+
+function upd(){
+const A=R.filter(p=>sel.has(p.i));
+document.getElementById('k1').textContent=`${sel.size}/7`;
+document.getElementById('k2').textContent=sel.size*2;
+document.getElementById('k3').textContent=`$${(sel.size*2*.45).toFixed(2)}`;
+document.getElementById('k4').textContent=A.length?Math.round(A.reduce((s,p)=>s+p.co,0)/A.length)+'%':'—';
+const L=document.getElementById('sellist');
+if(A.length===0){L.innerHTML='<div class="empty">Toca productos del ranking</div>'}
+else{L.innerHTML=A.map(p=>`<div class="sel-item"><div class="sel-dot"></div><span>${p.n}</span><span class="sel-fmt">${p.f} · x2</span></div>`).join('')}
+document.getElementById('gobtn').disabled=sel.size!==7;
+document.getElementById('gobtn').innerHTML=sel.size===7?'Generar código para n8n ↗':`Selecciona ${7-sel.size} más`;
+}
+
+function showB(i){
+const p=R.find(x=>x.i===i);
+if(!p)return;
+document.getElementById('brief').innerHTML=`<b>${p.n}</b><br><span style="color:#888">Formato ${p.f} · ${FMT_NAME[p.f]}</span><br><span style="color:#888">Keyword: ${p.k}</span><br><span style="color:#888">Comisión ${p.co}% · Trend ${p.t}/100 · Demanda ${p.d}/100</span><br><br><b>Brief para HeyGen:</b><br>Consejera, no vendedora. Menciona genéricamente el ingrediente/tipo. Fase 0: cero venta. Faceless, 6 escenas, 15 s. Voz español neutro. Máximo 8 palabras por frase. Cierre con invitación explícita a comentar/guardar. 4 hashtags específicos generados dinámicamente.`
+}
+
+function auto(){sel.clear();R.slice(0,7).forEach(p=>sel.add(p.i));localStorage.setItem('vivai_sel',JSON.stringify([...sel]));rend()}
+
+function produce(){
+if(sel.size!==7)return;
+const A=R.filter(p=>sel.has(p.i));
+const code=`const semana = [
+${A.map(p=>`  { producto: "${p.n}", formato: "${FMT_FULL[p.f]}", keyword: "${p.k}" }`).join(',\n')}
+];
+
+return semana.map(item => ({ json: item }));`;
+document.getElementById('code').textContent=code;
+document.getElementById('modal').classList.add('show');
+document.getElementById('btncopy').textContent='Copiar código';
+document.getElementById('btncopy').classList.remove('copied');
+}
+
+function copy(){
+const c=document.getElementById('code').textContent;
+navigator.clipboard.writeText(c).then(()=>{
+const b=document.getElementById('btncopy');
+b.textContent='✓ Copiado al portapapeles';
+b.classList.add('copied');
+});
+}
+
+function closeM(){document.getElementById('modal').classList.remove('show')}
+
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeM()});
+
+const now=new Date();
+const d1=new Date(now);d1.setDate(now.getDate()-now.getDay()+1);
+const d2=new Date(d1);d2.setDate(d1.getDate()+6);
+const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+document.getElementById('week').textContent=`Semana ${d1.getDate()}-${d2.getDate()} ${M[d1.getMonth()]} ${d1.getFullYear()}`;
+
+rend();
+</script>
+</body>
+</html>
